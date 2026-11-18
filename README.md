@@ -1,152 +1,224 @@
-# Food Store — TPI de Programación IV
+# Food Store — Trabajo Práctico Integrador de Programación IV
 
-- **Estudiante:** Nogueira Damián Ignacio.
-- **Materia:** Programación IV.
-- **Carrera:** Tecnicatura Universitaria en Programación a Distancia (TUPaD).
-- **Institución:** Universidad Tecnológica Nacional (UTN).
-- **Año:** 2026.
+**Estudiante:** Nogueira Damián Ignacio
 
-Aplicación de pedidos de comida de la UTN. Los clientes consultan el catálogo, mantienen un carrito, compran y consultan o cancelan sus pedidos. El administrador gestiona categorías, productos, stock, pedidos y usuarios, y consulta un resumen.
+**Materia:** Programación IV
 
-Backend FastAPI/SQLModel con PostgreSQL y JWT en cookie HttpOnly. Frontend React/TypeScript con Vite, Tailwind, Axios, TanStack Query, Form y Table, y Zustand.
+**Carrera:** Tecnicatura Universitaria en Programación a Distancia (TUPaD)
 
-- **Repositorio público:** pendiente de creación y autorización de publicación.
-- **Video público:** pendiente de grabación y verificación del enlace.
+**Institución:** Universidad Tecnológica Nacional (UTN)
+
+**Año:** 2026
+
+## Descripción
+
+Desarrollé Food Store como Trabajo Práctico Integrador de Programación IV. Es una aplicación web para realizar pedidos de comida.
+
+Los clientes pueden consultar el catálogo, buscar productos, agregarlos al carrito, realizar compras y consultar o cancelar sus pedidos. El administrador puede gestionar categorías, productos, stock, pedidos y usuarios, además de consultar un resumen de las operaciones.
+
+## Tecnologías utilizadas
+
+**Backend:**
+
+- Python y FastAPI.
+- SQLModel y PostgreSQL.
+- Autenticación JWT mediante cookies HttpOnly.
+
+**Frontend:**
+
+- React, TypeScript y Vite.
+- Tailwind CSS.
+- Axios.
+- TanStack Query, Form y Table.
+- Zustand y React Router.
 
 ## Requisitos
 
-- Python 3.11 a 3.13; verificado con 3.13.2.
-- PostgreSQL 15 o superior; verificado con 18.6. Se necesita una cuenta administradora para crear la base y un usuario propio.
-- Node.js compatible con Vite: 20.19+ de la rama 20, o 22.12+; verificado con 24.13.0.
-- pnpm 9 o superior; verificado con 10.32.1.
-- Dos terminales para mantener backend y frontend en ejecución.
+Para ejecutar el proyecto se necesita:
 
-Las dependencias directas están fijadas en backend/requirements.txt y frontend/package.json. Conservar frontend/pnpm-lock.yaml.
+- Python 3.11 a 3.13.
+- PostgreSQL 15 o superior.
+- Node.js 20.19 o superior de la rama 20, o 22.12 o superior, compatible con Vite.
+- pnpm 9 o superior.
 
-## 1. Preparar una base PostgreSQL independiente
+Las siguientes instrucciones utilizan PowerShell en Windows.
 
-Abrir SQL Shell (psql) o ejecutar `psql -h localhost -p 5432 -U postgres -d postgres` con las credenciales de administración de la instalación local. Si psql no está en PATH, usar SQL Shell instalado con PostgreSQL.
+Las dependencias están fijadas en `backend/requirements.txt` y `frontend/package.json`. Conservar `frontend/pnpm-lock.yaml` para instalar las mismas versiones del frontend.
 
-Elegir nombres nuevos. Los siguientes son ejemplos; si ya existen, elegir otros y ajustar DATABASE_URL. No borrar ni reiniciar bases existentes.
+## 1. Preparar la base de datos
 
-```sql
+Primero, iniciar PostgreSQL y abrir SQL Shell (psql) con el usuario administrador `postgres`.
+
+Crear un usuario y una base de datos para Food Store:
+
+```text
 CREATE ROLE foodstore_tpi_local LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
 \password foodstore_tpi_local
 CREATE DATABASE foodstore_tpi_entrega OWNER foodstore_tpi_local;
 \q
 ```
 
-El comando `\password` solicita una contraseña nueva sin escribirla en la instrucción SQL. Este usuario será dueño de su base y podrá crear las tablas allí; no necesita permisos de superusuario.
+El comando `\password` permite establecer la contraseña del usuario creado.
 
-## 2. Instalar y configurar el backend
+Estos nombres son ejemplos para una instalación nueva. Si ya existen, se deben utilizar otros y actualizar la conexión en el archivo `.env` del backend. No es necesario borrar ninguna base de datos existente.
 
-Desde la raíz del proyecto, en PowerShell:
+## 2. Instalar y ejecutar el backend
+
+Desde la raíz del proyecto, abrir una terminal y ejecutar:
 
 ```powershell
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Si la política de PowerShell impide activar el entorno, ejecutar los comandos con `.\.venv\Scripts\python.exe`: por ejemplo, `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`, `.\.venv\Scripts\python.exe -m app.db.seed` y `.\.venv\Scripts\python.exe -m uvicorn app.main:app`. No es necesario cambiar la política del sistema.
+Si PowerShell impide activar el entorno virtual, se pueden ejecutar los comandos con `.\.venv\Scripts\python.exe` sin cambiar la política del sistema: `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`, `.\.venv\Scripts\python.exe -m app.db.seed` y `.\.venv\Scripts\python.exe -m uvicorn app.main:app`.
 
-Solo si no existe backend/.env:
+Si todavía no existe el archivo `.env`, copiar el ejemplo:
 
 ```powershell
-Copy-Item -LiteralPath .env.example -Destination .env
+Copy-Item .env.example .env
 ```
 
-Editar .env y completar:
+Editar `backend/.env` con los datos correspondientes:
 
 ```dotenv
-DATABASE_URL=postgresql+psycopg2://foodstore_tpi_local:CONTRASENA_URL@localhost:5432/foodstore_tpi_entrega
-SECRET_KEY=REEMPLAZAR_POR_UNA_CLAVE_ALEATORIA_DE_AL_MENOS_32_CARACTERES
+DATABASE_URL=postgresql+psycopg2://foodstore_tpi_local:TU_CONTRASENA@localhost:5432/foodstore_tpi_entrega
+SECRET_KEY=TU_CLAVE_SECRETA_ALEATORIA
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 COOKIE_SECURE=false
 FRONTEND_ORIGIN=http://localhost:5173
 ```
 
-DATABASE_URL debe apuntar a la base nueva creada en el paso anterior. Si la contraseña contiene caracteres reservados de una URL, codificarlos para URL; CONTRASENA_URL es un marcador, no una credencial válida. No copiar configuraciones de otras entregas.
+Se debe reemplazar `TU_CONTRASENA` por la contraseña de PostgreSQL y `TU_CLAVE_SECRETA_ALEATORIA` por una clave segura de al menos 32 caracteres.
 
-Para generar una SECRET_KEY, ejecutar localmente `python -c "import secrets; print(secrets.token_urlsafe(48))"` y pegar el resultado en .env. Mantener este archivo privado.
+`DATABASE_URL` debe apuntar a la base nueva. `SECRET_KEY` y `ALGORITHM` se utilizan para firmar el JWT; `ACCESS_TOKEN_EXPIRE_MINUTES` define su duración. `COOKIE_SECURE=false` permite usar la cookie por HTTP local; con HTTPS debe ser `true`. `FRONTEND_ORIGIN` indica el origen permitido por CORS, sin barra final.
 
-| Variable | Uso |
-| --- | --- |
-| DATABASE_URL | Conexión PostgreSQL mediante psycopg2 |
-| SECRET_KEY | Firma del JWT; al menos 32 caracteres |
-| ALGORITHM | HS256 |
-| ACCESS_TOKEN_EXPIRE_MINUTES | Expiración de cookie y token; 30 minutos |
-| COOKIE_SECURE | false para HTTP local; true si se configura HTTPS |
-| FRONTEND_ORIGIN | Origen exacto permitido por CORS, sin barra final |
+Para generar una clave, se puede ejecutar:
 
-Crear tablas y cargar los datos iniciales:
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+Si la contraseña de PostgreSQL contiene caracteres especiales reservados para URL, deben codificarse correctamente en `DATABASE_URL`.
+
+El archivo `.env` contiene información privada y no debe incluirse en la entrega.
+
+### Crear las tablas y cargar los datos iniciales
+
+Ejecutar:
 
 ```powershell
 python -m app.db.seed
 ```
 
-El seed crea las cinco tablas si faltan, el administrador, tres categorías y ocho productos con stock. Es idempotente: repetirlo no duplica registros ni restablece stock, contraseñas o bajas.
+Este comando crea las tablas necesarias y carga un administrador, tres categorías y ocho productos iniciales.
 
-**Administrador inicial:** usuario `admin`, contraseña `Admin1234!`.
+El seed puede ejecutarse nuevamente sin duplicar los registros existentes. Conserva sus contraseñas, stock y bajas; no restablece datos modificados.
 
-Iniciar la API y mantener esta terminal abierta:
+**Administrador inicial:**
+
+- Usuario: `admin`
+- Contraseña: `Admin1234!`
+
+### Iniciar el servidor
 
 ```powershell
 uvicorn app.main:app
 ```
 
-Opcional para desarrollo: agregar `--reload`. El servidor usa `http://localhost:8000`; no crea tablas al arrancar, por eso debe ejecutarse primero el seed.
+El backend estará disponible en:
 
-- Swagger: [http://localhost:8000/docs](http://localhost:8000/docs).
-- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc).
-- API: `http://localhost:8000/api/v1`.
+- URL base de la API: `http://localhost:8000/api/v1`.
+- Documentación Swagger: [http://localhost:8000/docs](http://localhost:8000/docs).
+- Documentación ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc).
+
+Mantener esta terminal abierta mientras se utiliza la aplicación.
+
+Ejecutar primero el seed: iniciar el servidor no crea las tablas.
 
 ## 3. Instalar y ejecutar el frontend
 
-En otra terminal, desde la raíz:
+Abrir otra terminal desde la raíz del proyecto:
 
 ```powershell
 cd frontend
 pnpm install
 ```
 
-Solo si no existe frontend/.env, copiar .env.example a .env y conservar:
+Si todavía no existe `frontend/.env`, copiar el archivo de ejemplo:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Verificar que contenga la dirección de la API:
 
 ```dotenv
 VITE_API_URL=http://localhost:8000/api/v1
 ```
 
-La URL base incluye /api/v1 una sola vez. Si existe una configuración local, revisarla sin sobrescribirla. Las variables VITE_ son públicas: no colocar contraseñas ni SECRET_KEY en el frontend.
+La URL debe incluir `/api/v1` una sola vez. Las variables `VITE_` son públicas: no colocar contraseñas ni claves privadas en el frontend.
+
+Después, ejecutar:
 
 ```powershell
 pnpm build
 pnpm dev
 ```
 
-Abrir [http://localhost:5173](http://localhost:5173). Mantener la terminal abierta. Usar localhost en navegador y API para las cookies. Si el puerto 5173 está ocupado, detener el proceso propio que lo ocupa o configurar explícitamente el nuevo origen en backend/.env; no usar sin advertir el puerto alternativo de Vite.
+Abrir la aplicación en:
 
-Como alternativa para exigir el puerto previsto: `pnpm dev --host localhost --port 5173 --strictPort`. Reiniciar Vite después de modificar su entorno. En Windows se puede usar `pnpm.cmd` si PowerShell bloquea el archivo pnpm.ps1.
+[http://localhost:5173](http://localhost:5173).
 
-## Uso
+Es importante utilizar `localhost` tanto para el frontend como para el backend para mantener el funcionamiento de las cookies de sesión.
 
-El catálogo y el carrito son públicos. Registrar un cliente, iniciar sesión y completar dirección de 5 a 200 caracteres y pago en efectivo o transferencia para comprar. El backend determina los precios definitivos y el stock. Mis pedidos permite ver el detalle y cancelar pedidos propios en PENDIENTE.
+Antes de iniciar los servidores, comprobar que los puertos 8000 y 5173 estén libres. Si alguno está ocupado, detener únicamente el proceso propio correspondiente o configurar otro puerto explícitamente. Al cambiar el backend, actualizar `VITE_API_URL`; al cambiar el frontend, actualizar `FRONTEND_ORIGIN`. Reiniciar los servidores después de modificar sus variables de entorno.
 
-El administrador accede desde Administración a resumen, categorías, productos, pedidos y usuarios. La baja de una categoría no oculta sus productos ni libera su nombre. Los pedidos solo avanzan por sus estados permitidos; cancelar restituye el stock. No se editan líneas ni totales de pedidos. Un administrador no puede desactivar su propia cuenta.
+Para que Vite no seleccione otro puerto automáticamente, se puede ejecutar `pnpm dev --host localhost --port 5173 --strictPort`.
 
-La sesión viaja exclusivamente en cookie HttpOnly. JavaScript persiste el perfil y el carrito, nunca el JWT. No hay pasarela de pago ni envío de notificaciones externas.
+En algunas configuraciones de PowerShell puede ser necesario ejecutar `pnpm.cmd` en lugar de `pnpm`.
 
-## Organización y controles
+## 4. Funcionamiento de la aplicación
 
-`backend/app/core` contiene infraestructura; `backend/app/modules` agrupa auth, usuarios, categorias, productos y pedidos. Categorías, productos y pedidos siguen Router → Service → Unit of Work → Repository → Model. El UoW confirma o revierte y cierra la sesión.
+### Cliente
 
-`frontend/src/features` agrupa dominios, `shared` infraestructura y componentes, `store` sesión/carrito y `routes` navegación protegida. Query administra los datos del servidor; Zustand el estado del cliente.
+El catálogo y el carrito se pueden utilizar sin iniciar sesión.
 
-Desde frontend: `pnpm lint` y `pnpm build`. Los resultados de instalación aislada, contratos, UML y navegador se documentan en [la auditoría final](docs/auditoria-final-tpi.md), cuando se adjunta la carpeta docs a la copia de revisión. Las pruebas no requieren ni deben utilizar bases de otras entregas.
+Para realizar una compra, el cliente debe registrarse o iniciar sesión. Después puede completar la dirección de entrega, seleccionar la forma de pago y confirmar el pedido.
 
-## Pendientes de entrega
+Desde **Mis pedidos** puede consultar las compras realizadas y cancelar aquellas que todavía estén en estado `PENDIENTE`.
 
-Faltan incorporar y verificar las URLs reales del repositorio público y del video de 10–15 minutos. El video debe incluir cámara al inicio, registro, compra como cliente, gestión administrativa y cancelación con restitución de stock. Todavía no se consideran completas CE-01, CE-02 ni CE-07.
+Cuando se confirma una compra, el sistema descuenta el stock correspondiente. Si el pedido se cancela, ese stock se restituye.
 
-El ZIP definitivo se preparará después de la revisión. Debe incluir backend/, frontend/ y este README.md en la raíz, conservar ambos .env.example y los archivos de dependencias, y excluir .env, entornos virtuales, node_modules, .local, cachés y compilaciones. No incluir credenciales privadas.
+### Administrador
+
+Al iniciar sesión con el usuario administrador, se habilitan las siguientes funciones:
+
+- **Resumen:** consulta de los principales indicadores de pedidos.
+- **Categorías:** creación, edición y baja lógica.
+- **Productos:** creación, edición, baja lógica, stock y disponibilidad.
+- **Pedidos:** consulta y actualización de estados.
+- **Usuarios:** consulta, activación y desactivación de cuentas.
+
+Los pedidos siguen los cambios de estado permitidos por la consigna. Sus detalles y totales se conservan para mantener el historial de las compras.
+
+## 5. Organización del proyecto
+
+Organicé el backend por módulos de autenticación, usuarios, categorías, productos y pedidos.
+
+Para separar las responsabilidades utilicé la arquitectura **Router → Service → Unit of Work → Repository → Model**. El Service abre el Unit of Work, que administra el commit, rollback y cierre de la sesión.
+
+En el frontend organicé las funcionalidades por carpetas dentro de `src/features`. Utilicé TanStack Query para consultar y actualizar datos del servidor, Zustand para manejar el estado de sesión y del carrito, y React Router para la navegación y las rutas protegidas.
+
+## 6. Repositorio y demostración
+
+**Repositorio de GitHub:**
+
+[damiannogueira/food-store-tpi-prog4](https://github.com/damiannogueira/food-store-tpi-prog4).
+
+**Video de demostración:**
+
+[Ver video de demostración](https://youtu.be/DE6A6q7AkGs).

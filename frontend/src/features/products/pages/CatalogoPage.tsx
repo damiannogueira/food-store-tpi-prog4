@@ -18,7 +18,11 @@ export function CatalogoPage() {
     <div className="my-6 flex flex-wrap items-end gap-4">
       <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => { event.preventDefault(); setFiltros({ ...filtros, search: busqueda, pagina: 0 }) }}>
         <div><label htmlFor="busqueda" className="mb-1 block font-medium">Buscar por nombre</label>
-          <input id="busqueda" type="search" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} className="rounded border border-gray-300 px-3 py-2 dark:border-gray-600" />
+          <input id="busqueda" type="search" value={busqueda} onChange={(event) => {
+            const texto = event.target.value
+            setBusqueda(texto)
+            if (texto === '') setFiltros((actuales) => ({ ...actuales, search: '', pagina: 0 }))
+          }} className="rounded border border-gray-300 px-3 py-2 dark:border-gray-600" />
         </div>
         <button type="submit" className="rounded bg-blue-700 px-4 py-2 text-white">Buscar</button>
       </form>

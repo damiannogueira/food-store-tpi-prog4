@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createProducto, deleteProducto, getProductos, updateProducto, actualizarStock } from '../services/productos.service'
 import type { ProductoDatos } from '../types/producto'
+import { ApiError } from '@/shared/api/request'
 
 export function useAdminProducts() {
   const client = useQueryClient()
@@ -16,6 +17,8 @@ export function useAdminProducts() {
     ...(datos.categoria_id !== categoriaActual ? { categoria_id: datos.categoria_id } : {}),
   }) : createProducto(datos), onSuccess: actualizar })
   const stock = useMutation({ mutationFn: ({ id, stock, disponible }: { id: number; stock: number; disponible: boolean }) => actualizarStock(id, { stock, disponible }), onSuccess: actualizar })
-  const eliminar = useMutation({ mutationFn: deleteProducto, onSuccess: actualizar })
+  const eliminar = useMutation({ mutationFn: deleteProducto, onSuccess: actualizar, onError: async (error) => {
+    if (error instanceof ApiError && error.status === 404) await actualizar()
+  } })
   return { query, guardar, stock, eliminar }
 }

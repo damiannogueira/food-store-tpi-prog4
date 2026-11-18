@@ -50,7 +50,7 @@ class AuthService:
 
     def autenticar(self, username: str, password: str) -> str:
         with self.uow as uow:
-            usuario = uow.usuarios.get_by_username(username)
+            usuario = uow.usuarios.get_by_username(username.strip())
 
             if len(password.encode("utf-8")) > 72:
                 raise CredencialesInvalidas("Credenciales incorrectas")

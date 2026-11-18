@@ -431,6 +431,29 @@ class PedidosTest(unittest.TestCase):
                 },
             )
 
+    def test_registro_y_login_con_espacios_en_usuario(self):
+        datos = {
+            "username": "  usuario_nuevo  ",
+            "full_name": "Usuario nuevo",
+            "email": "usuario_nuevo@example.com",
+            "password": " Clave+&1234! ",
+        }
+        registro = self.http.post("/api/v1/auth/register", json=datos)
+        self.assertEqual(registro.status_code, 201)
+        self.assertEqual(registro.json()["username"], "usuario_nuevo")
+        login = self.http.post(
+            "/api/v1/auth/token",
+            data={"username": datos["username"], "password": datos["password"]},
+        )
+        self.assertEqual(login.status_code, 200)
+        self.assertEqual(self.http.get("/api/v1/auth/me").status_code, 200)
+        self.http.post("/api/v1/auth/logout")
+        incorrecto = self.http.post(
+            "/api/v1/auth/token",
+            data={"username": "usuario_nuevo", "password": datos["password"].strip()},
+        )
+        self.assertEqual(incorrecto.status_code, 401)
+
     def test_post_http_y_cookie_real(self):
         login = self.http.post(
             "/api/v1/auth/token", data={"username": "cliente", "password": "Clave1234!"}
